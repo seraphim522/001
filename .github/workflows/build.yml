@@ -12,10 +12,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - run: pip install -r requirements.txt
-      - run: python build_ppt.py
-      - uses: actions/upload-artifact@v4
+          python-version: "3.9"
+      - name: Upgrade pip
+        run: python -m pip install -U pip setuptools wheel
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Build PPTX
+        run: python build_ppt.py
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: research-pipeline-pptx
           path: output/research-pipeline.pptx
+          if-no-files-found: error
