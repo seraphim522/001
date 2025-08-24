@@ -22,11 +22,19 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements.txt
+          python -c "import pptx, sys; print('python-pptx', pptx.__version__)"
 
       - name: Generate PPT
-        run: python generate_ppt.py
+        run: |
+          set -eux
+          python generate_ppt.py
+          ls -l
+
+      - name: Verify output exists
+        run: |
+          test -f hybrid_models.pptx || (echo 'hybrid_models.pptx 未生成' && exit 1)
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -36,7 +44,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      # 可选：将生成的 PPT 提交回仓库（默认开启）
+      # 可选：将生成文件提交回当前分支
       - name: Commit generated PPT back to repo
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
