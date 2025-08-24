@@ -1,4 +1,4 @@
-name: Generate PPT (Matrix)
+name: Generate PPT
 
 on:
   workflow_dispatch:
@@ -6,22 +6,19 @@ on:
     paths:
       - "generate_ppt.py"
       - "requirements.txt"
-      - ".github/workflows/generate-ppt-matrix.yml"
+      - ".github/workflows/generate-ppt.yml"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.12"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python ${{ matrix.python-version }}
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"  # 如需 3.10 改为 "3.10"
 
       - name: Install dependencies
         run: |
@@ -29,7 +26,7 @@ jobs:
           pip install -r requirements.txt
           python - << 'PY'
 import pptx, sys
-print("python:", sys.version)
+print("python:", sys.version.split()[0])
 print("python-pptx:", pptx.__version__)
 PY
 
@@ -42,18 +39,20 @@ PY
       - name: Verify output exists
         run: test -f hybrid_models.pptx
 
-      - name: Upload artifact (${{ matrix.python-version }})
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: hybrid_models-pptx-${{ matrix.python-version }}
+          name: hybrid_models-pptx
           path: hybrid_models.pptx
           if-no-files-found: error
           retention-days: 7
 
-      - name: Commit generated PPT back to repo (only once)
-        if: matrix.python-version == '3.12'
+      - name: Commit generated PPT back to repo
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
+          commit_message: "chore: generate PPT (hybrid_models.pptx)"
+          file_pattern: hybrid_models.pptx
+          branch: ${{ github.ref_name }}
           commit_message: "chore: generate PPT (hybrid_models.pptx, Python ${{ matrix.python-version }})"
           file_pattern: hybrid_models.pptx
           branch: ${{ github.ref_name }}
