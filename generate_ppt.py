@@ -142,7 +142,6 @@ def slide1(prs):
     x1, y1 = mid_right(s_valm)
     x2, y2 = s_oed.left, s_oed.top + s_oed.height // 2
     add_arrow(slide, x1, y1, x2, y2)
-
     elbow_feedback(slide, s_oed, s_exp, via_y=Inches(1.4))
 
 def slide2(prs):
