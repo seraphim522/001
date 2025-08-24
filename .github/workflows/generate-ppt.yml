@@ -1,0 +1,45 @@
+name: Generate PPT
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "generate_ppt.py"
+      - "requirements.txt"
+      - ".github/workflows/generate-ppt.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate PPT
+        run: python generate_ppt.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hybrid_models-pptx
+          path: hybrid_models.pptx
+          if-no-files-found: error
+          retention-days: 7
+
+      # 可选：将生成的 PPT 提交回仓库（默认开启）
+      - name: Commit generated PPT back to repo
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: generate PPT (hybrid_models.pptx)"
+          file_pattern: hybrid_models.pptx
+          branch: ${{ github.ref_name }}
