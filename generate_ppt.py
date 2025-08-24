@@ -94,7 +94,8 @@ def add_arrow(slide, x1, y1, x2, y2, width_pt=2.0, dashed=False):
     conn = slide.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, x1, y1, x2, y2)
     conn.line.color.rgb = GRAY
     conn.line.width = Pt(width_pt)
-    conn.line.end_arrowhead.style = MSO_ARROWHEAD_STYLE.TRIANGLE
+    # 正确写法：给 end_arrowhead 直接赋值为枚举（不要 .style）
+    conn.line.end_arrowhead = MSO_ARROWHEAD_STYLE.TRIANGLE
     if dashed:
         conn.line.dash_style = MSO_LINE_DASH_STYLE.DASH
     return conn
