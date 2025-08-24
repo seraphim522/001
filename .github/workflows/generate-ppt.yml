@@ -1,4 +1,4 @@
-name: Generate PPT
+name: Generate PPT (Matrix)
 
 on:
   workflow_dispatch:
@@ -6,48 +6,54 @@ on:
     paths:
       - "generate_ppt.py"
       - "requirements.txt"
-      - ".github/workflows/generate-ppt.yml"
+      - ".github/workflows/generate-ppt-matrix.yml"
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements.txt
-          python -c "import pptx, sys; print('python-pptx', pptx.__version__)"
+          python - << 'PY'
+import pptx, sys
+print("python:", sys.version)
+print("python-pptx:", pptx.__version__)
+PY
 
       - name: Generate PPT
         run: |
           set -eux
           python generate_ppt.py
-          ls -l
+          ls -lh
 
       - name: Verify output exists
-        run: |
-          test -f hybrid_models.pptx || (echo 'hybrid_models.pptx 未生成' && exit 1)
+        run: test -f hybrid_models.pptx
 
-      - name: Upload artifact
+      - name: Upload artifact (${{ matrix.python-version }})
         uses: actions/upload-artifact@v4
         with:
-          name: hybrid_models-pptx
+          name: hybrid_models-pptx-${{ matrix.python-version }}
           path: hybrid_models.pptx
           if-no-files-found: error
           retention-days: 7
 
-      # 可选：将生成文件提交回当前分支
-      - name: Commit generated PPT back to repo
+      - name: Commit generated PPT back to repo (only once)
+        if: matrix.python-version == '3.12'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: generate PPT (hybrid_models.pptx)"
+          commit_message: "chore: generate PPT (hybrid_models.pptx, Python ${{ matrix.python-version }})"
           file_pattern: hybrid_models.pptx
           branch: ${{ github.ref_name }}
